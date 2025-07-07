@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>360° Virtual Tour - Split Screen VR</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+  </head>
+  <body>
+    <a-scene vr-mode-ui="enabled: true" embedded>
+      <!-- CAMERA WITH RETICLE -->
+      <a-entity camera look-controls wasd-controls>
+        <a-entity 
+          cursor="fuse: true; fuseTimeout: 2000"
+          position="0 0 -1"
+          geometry="primitive: ring; radiusInner: 0.01; radiusOuter: 0.02"
+          material="color: white; shader: flat">
+        </a-entity>
+      </a-entity>
+
+      <!-- SKY -->
+      <a-sky id="sky" src="assets/hall.jpg" rotation="0 -90 0"></a-sky>
+
+      <!-- HOTSPOTS -->
+      <a-image src="assets/hotspot.jpg"
+               id="hall"
+               position="2 1.5 -3"
+               width="0.5" height="0.5"
+               look-at="[camera]"
+               gaze-teleport="target: bedroom1">
+      </a-image>
+
+      <a-image src="assets/hotspot.jpg"
+               id="bedroom1"
+               visible="false"
+               position="-2 1.5 -3"
+               width="0.5" height="0.5"
+               look-at="[camera]"
+               gaze-teleport="target: bedroom2">
+      </a-image>
+
+      <a-image src="assets/hotspot.jpg"
+               id="bedroom2"
+               visible="false"
+               position="1.5 1.5 -3"
+               width="0.5" height="0.5"
+               look-at="[camera]"
+               gaze-teleport="target: bedroom3">
+      </a-image>
+
+      <a-image src="assets/hotspot.jpg"
+               id="bedroom3"
+               visible="false"
+               position="0 1.5 -3"
+               width="0.5" height="0.5"
+               look-at="[camera]"
+               gaze-teleport="target: kitchen">
+      </a-image>
+
+      <a-image src="assets/hotspot.jpg"
+               id="kitchen"
+               visible="false"
+               position="0 1.5 -3"
+               width="0.5" height="0.5"
+               look-at="[camera]"
+               gaze-teleport="target: hall">
+      </a-image>
+
+      <script>
+        const sky = document.querySelector("#sky");
+
+        const hotspots = {
+          hall: document.querySelector("#hall"),
+          bedroom1: document.querySelector("#bedroom1"),
+          bedroom2: document.querySelector("#bedroom2"),
+          bedroom3: document.querySelector("#bedroom3"),
+          kitchen: document.querySelector("#kitchen")
+        };
+
+        const sceneMap = {
+          hall:      { src: "assets/hall.jpg",      next: "bedroom1" },
+          bedroom1:  { src: "assets/bedroom1.jpg",  next: "bedroom2" },
+          bedroom2:  { src: "assets/bedroom2.jpg",  next: "bedroom3" },
+          bedroom3:  { src: "assets/bedroom3.jpg",  next: "kitchen"   },
+          kitchen:   { src: "assets/kitchen.jpg",   next: "hall"      }
+        };
+
+        function changeScene(room) {
+          sky.setAttribute("src", sceneMap[room].src);
+
+          // Hide all hotspots
+          Object.values(hotspots).forEach(h => h.setAttribute("visible", "false"));
+
+          // Show only relevant hotspot
+          const nextHotspot = sceneMap[room].next;
+          if (hotspots[nextHotspot]) {
+            hotspots[nextHotspot].setAttribute("visible", "true");
+          }
+        }
+
+        AFRAME.registerComponent("gaze-teleport", {
+          schema: { target: { type: "string" } },
+          init: function () {
+            this.el.addEventListener("click", () => {
+              changeScene(this.data.target);
+            });
+          },
+        });
+      </script>
+    </a-scene>
+
+    <!-- VR Button for Split Screen -->
+    <button style="position: absolute; bottom: 20px; right: 20px; z-index: 10; font-size: 18px;" onclick="enterVR()">Enter VR</button>
+
+    <script>
+      function enterVR() {
+        const scene = document.querySelector("a-scene");
+        if (scene && scene.enterVR) {
+          scene.enterVR();
+        }
+      }
+    </script>
+  </body>
+</html>
